@@ -1,0 +1,1370 @@
+/* ==========================================
+   HYDYAR CALCULATOR
+   FULL + KEYBOARD COMPACT MODE
+   ========================================== */
+:root {
+    --primary-blue: #6FA8FF;
+    --primary-purple: #8F7CFF;
+    --gradient: linear-gradient(135deg, #6FA8FF, #8F7CFF);
+
+    --bg: radial-gradient(circle at top right, rgba(111,168,255,.18), transparent 35%),
+          radial-gradient(circle at bottom left, rgba(143,124,255,.12), transparent 35%),
+          #050816;
+
+    --card: rgba(255, 255, 255, 0.05);
+    --card-soft: rgba(255, 255, 255, 0.08);
+
+    --text: #E0E7FF;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+
+    --shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+
+    --radius: 22px;
+    --transition: all 0.25s ease;
+
+    --border-light: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+
+[data-theme="dark"] {
+    --bg: radial-gradient(circle at top right, rgba(111,168,255,.16), transparent 35%),
+          radial-gradient(circle at bottom left, rgba(143,124,255,.11), transparent 35%),
+          #060D22;
+
+    --card: rgba(255, 255, 255, 0.055);
+    --card-soft: rgba(255, 255, 255, 0.085);
+
+    --text: #F0F4FF;
+    --text-secondary: rgba(255, 255, 255, 0.75);
+
+    --shadow: 0 10px 38px rgba(0, 0, 0, 0.32);
+}
+
+/* ==========================================
+   CALCULATOR VARIABLES
+   ========================================== */
+
+#calculator-tool {
+
+    /*
+     * Dùng trực tiếp màu từ :root
+     * Không tạo thêm hệ màu riêng.
+     */
+
+    --calc-primary: var(--primary-blue);
+    --calc-secondary: var(--primary-purple);
+
+}
+
+
+/* ==========================================
+   CARD
+   ========================================== */
+
+#calculator-tool .calculator-card {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 18px;
+}
+
+
+/* ==========================================
+   TITLE
+   ========================================== */
+
+#calculator-tool .tool-title {
+
+    margin: 0;
+
+    text-align: left;
+
+    color: var(--text);
+}
+
+
+/* ==========================================
+   CALCULATOR
+   ========================================== */
+
+#calculator-tool .calculator {
+
+    width: 100%;
+
+    max-width: 520px;
+
+    margin: 0 auto;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+
+/* ==========================================
+   DISPLAY WRAPPER
+   ========================================== */
+
+#calculator-tool .calc-display-wrapper {
+
+    position: relative;
+
+    width: 100%;
+
+    min-height: 86px;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+    border-radius: 16px;
+
+    background: var(--card);
+
+    border: var(--border-light);
+
+    transition:
+        box-shadow 0.3s ease,
+        border-color 0.3s ease,
+        transform 0.35s ease;
+}
+
+
+/* ==========================================
+   INPUT
+   ========================================== */
+
+#calculator-tool .calc-display {
+
+    width: 100%;
+
+    min-height: 86px;
+
+    box-sizing: border-box;
+
+    padding:
+        12px 18px 34px;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: var(--text);
+
+    font-family:
+        "Inter",
+        "Segoe UI",
+        sans-serif;
+
+    font-size: 1.45rem;
+
+    font-weight: 600;
+
+    text-align: left;
+
+    overflow-x: auto;
+
+    white-space: nowrap;
+
+    transition:
+        color 0.3s ease,
+        opacity 0.35s ease;
+}
+
+
+/* ==========================================
+   PLACEHOLDER
+   ========================================== */
+
+#calculator-tool .calc-display::placeholder {
+
+    color: var(--text-secondary);
+
+    opacity: 0.65;
+}
+
+
+/* ==========================================
+   DISPLAY FOCUS
+   ========================================== */
+
+#calculator-tool .calc-display-wrapper:focus-within {
+
+    border-color:
+        var(--primary-blue);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(111,168,255,0.15);
+}
+
+
+/* ==========================================
+   INLINE RESULT
+   ========================================== */
+
+#calculator-tool .calc-inline-result {
+
+    position: absolute;
+
+    right: 18px;
+
+    bottom: 9px;
+
+    max-width:
+        calc(100% - 36px);
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-size: 1.05rem;
+
+    font-weight: 700;
+
+    color: var(--text-secondary);
+
+    opacity: 0;
+
+    transform:
+        translateY(10px)
+        scale(0.9);
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.3s ease,
+        transform 0.35s
+        cubic-bezier(.2,.8,.2,1);
+}
+
+
+/* ==========================================
+   RESULT VISIBLE
+   ========================================== */
+
+#calculator-tool .calc-inline-result.result-visible {
+
+    opacity: 1;
+
+    transform:
+        translateY(0)
+        scale(1);
+}
+
+
+/* ==========================================
+   CALCULATED EXPRESSION
+   ========================================== */
+
+#calculator-tool .calc-display.expression-calculated {
+
+    color:
+        var(--text-secondary);
+
+    opacity: 0.38;
+}
+
+
+/* ==========================================
+   BUTTON GRID
+   ========================================== */
+
+#calculator-tool .calc-buttons {
+
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 10px;
+
+    transition:
+        gap 0.35s ease,
+        transform 0.4s
+        cubic-bezier(.2,.8,.2,1);
+}
+
+
+/* ==========================================
+   BASE BUTTON
+   ========================================== */
+
+#calculator-tool .calc-btn {
+
+    min-height: 58px;
+
+    padding: 0;
+
+    border:
+        var(--border-light);
+
+    border-radius: 14px;
+
+    background:
+        var(--card);
+
+    color:
+        var(--text);
+
+    font-size: 1.1rem;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    user-select: none;
+
+    -webkit-tap-highlight-color:
+        transparent;
+
+    opacity: 1;
+
+    transform:
+        translateY(0)
+        scale(1);
+
+    transition:
+        opacity 0.28s ease,
+        transform 0.35s
+        cubic-bezier(.2,.8,.2,1),
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+/* ==========================================
+   NUMBER BUTTONS
+   ========================================== */
+
+#calculator-tool #calcMainButtons .calc-btn.number {
+
+    background:
+        var(--card);
+
+    color:
+        var(--text);
+
+    border:
+        var(--border-light);
+}
+
+
+/* ==========================================
+   OPERATOR BUTTONS
+   ========================================== */
+
+/*
+ * Tất cả toán tử dùng cùng một màu.
+ */
+
+#calculator-tool #calcMainButtons .calc-btn.operator {
+
+    background:
+        rgba(111,168,255,0.10);
+
+    color:
+        var(--primary-blue);
+
+    border-color:
+        rgba(111,168,255,0.20);
+
+    font-size: 1.3rem;
+
+    font-weight: 700;
+}
+
+
+/* ==========================================
+   PERCENT
+   ========================================== */
+
+/*
+ * % vẫn thuộc nhóm toán tử.
+ * Dùng cùng màu với operator.
+ */
+
+#calculator-tool #calcMainButtons
+.calc-btn[data-value="%"] {
+
+    background:
+        rgba(111,168,255,0.10);
+
+    color:
+        var(--primary-blue);
+
+    border-color:
+        rgba(111,168,255,0.20);
+}
+
+
+/* ==========================================
+   POWER
+   ========================================== */
+
+/*
+ * ^ cũng cùng nhóm toán tử.
+ */
+
+#calculator-tool #calcMainButtons
+.calc-btn[data-value="^"] {
+
+    background:
+        rgba(111,168,255,0.10);
+
+    color:
+        var(--primary-blue);
+
+    border-color:
+        rgba(111,168,255,0.20);
+}
+
+
+/* ==========================================
+   EQUALS
+   ========================================== */
+
+/*
+ * = là nút duy nhất dùng gradient.
+ */
+
+#calculator-tool #calcMainButtons .calc-btn.equals {
+
+    background:
+        var(--gradient);
+
+    color:
+        #FFFFFF;
+
+    border:
+        none;
+
+    font-size: 1.3rem;
+
+    font-weight: 800;
+
+    box-shadow:
+        0 6px 18px
+        rgba(111,168,255,0.16);
+}
+
+
+/* ==========================================
+   FUNCTION BUTTONS
+   ========================================== */
+
+/*
+ * Các nút chức năng giống nhau
+ * dùng cùng một màu.
+ */
+
+#calculator-tool #calcMainButtons
+.calc-btn.function {
+
+    background:
+        rgba(143,124,255,0.10);
+
+    color:
+        var(--primary-purple);
+
+    border-color:
+        rgba(143,124,255,0.20);
+
+    font-weight: 600;
+}
+
+
+/* ==========================================
+   CONTROL BUTTONS
+   ========================================== */
+
+/*
+ * C / Backspace / ← / →
+ * đều là nhóm điều khiển.
+ *
+ * Không chia mỗi nút một màu.
+ */
+
+#calculator-tool #calcControls .calc-btn {
+
+    background:
+        rgba(143,124,255,0.10);
+
+    color:
+        var(--primary-purple);
+
+    border-color:
+        rgba(143,124,255,0.20);
+
+    font-weight: 600;
+}
+
+
+/* ==========================================
+   HOVER
+   ========================================== */
+
+#calculator-tool .calc-btn:hover {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 5px 16px
+        rgba(0,0,0,0.1);
+}
+
+
+/* ==========================================
+   OPERATOR HOVER
+   ========================================== */
+
+@media (hover: hover) {
+
+    #calculator-tool #calcMainButtons
+    .calc-btn.operator:hover,
+
+    #calculator-tool #calcMainButtons
+    .calc-btn[data-value="%"]:hover,
+
+    #calculator-tool #calcMainButtons
+    .calc-btn[data-value="^"]:hover {
+
+        background:
+            rgba(111,168,255,0.17);
+
+        border-color:
+            rgba(111,168,255,0.30);
+    }
+
+
+    #calculator-tool #calcMainButtons
+    .calc-btn.function:hover,
+
+    #calculator-tool #calcControls
+    .calc-btn:hover {
+
+        background:
+            rgba(143,124,255,0.17);
+
+        border-color:
+            rgba(143,124,255,0.30);
+    }
+
+
+    #calculator-tool #calcMainButtons
+    .calc-btn.equals:hover {
+
+        background:
+            var(--gradient);
+
+        box-shadow:
+            0 8px 22px
+            rgba(111,168,255,0.24);
+    }
+
+}
+
+
+/* ==========================================
+   ACTIVE
+   ========================================== */
+
+#calculator-tool .calc-btn:active {
+
+    transform:
+        translateY(1px)
+        scale(0.94);
+
+    box-shadow: none;
+}
+
+
+/* ==========================================
+   CONTROLS
+   ========================================== */
+
+#calculator-tool .calc-controls {
+
+    gap: 10px;
+
+    overflow: hidden;
+
+    transition:
+        gap 0.35s ease,
+        max-height 0.4s ease,
+        opacity 0.35s ease,
+        transform 0.4s
+        cubic-bezier(.2,.8,.2,1);
+}
+
+
+/* ==========================================
+   CONTROL BUTTON
+   ========================================== */
+
+#calculator-tool .calc-controls .calc-btn {
+
+    min-height: 52px;
+
+    font-size: 1.05rem;
+}
+
+
+/* ==========================================
+   STEPS
+   ========================================== */
+
+#calculator-tool .calc-steps {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 18px;
+
+    border-radius: 16px;
+
+    background:
+        var(--card);
+
+    border:
+        var(--border-light);
+
+    transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
+}
+
+
+/* ==========================================
+   SECTION TITLE
+   ========================================== */
+
+#calculator-tool .calc-section-title {
+
+    margin:
+        0 0 14px;
+
+    font-size: 1rem;
+
+    font-weight: 700;
+
+    color:
+        var(--text);
+}
+
+
+/* ==========================================
+   STEPS LIST
+   ========================================== */
+
+#calculator-tool .calc-steps-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin: 0;
+
+    padding-left: 24px;
+
+    color:
+        var(--text);
+}
+
+
+/* ==========================================
+   STEP
+   ========================================== */
+
+#calculator-tool .calc-steps-list li {
+
+    padding-left: 4px;
+
+    line-height: 1.6;
+
+    font-size: 0.98rem;
+}
+
+
+/* ==========================================
+   EMPTY
+   ========================================== */
+
+#calculator-tool .calc-step-empty {
+
+    color:
+        var(--text-secondary);
+
+    font-style: italic;
+}
+
+
+/* ==========================================
+   CODE
+   ========================================== */
+
+#calculator-tool .calc-steps-list code {
+
+    padding:
+        2px 6px;
+
+    border-radius: 6px;
+
+    background:
+        rgba(127,127,127,0.08);
+
+    font-family:
+        "Consolas",
+        "Monaco",
+        monospace;
+
+    font-size:
+        0.95em;
+}
+
+
+/* =====================================================
+   COMPACT MODE
+   ===================================================== */
+
+/*
+   Khi keyboard mở:
+
+   Full:
+   20 nút
+
+   ↓
+
+   Compact:
+   4 operator
+   +
+   4 control
+
+   = 8 nút
+*/
+
+
+@media (max-width: 600px) {
+
+
+    /* ==========================================
+       COMPACT MAIN GRID
+       ========================================== */
+
+    #calculator-tool.calculator-compact
+    #calcMainButtons {
+
+        grid-template-columns:
+            repeat(4, 1fr);
+
+        gap: 8px;
+    }
+
+
+    /* ==========================================
+       ẨN BUTTON KHÔNG PHẢI OPERATOR
+       ========================================== */
+
+    #calculator-tool.calculator-compact
+    #calcMainButtons
+    .calc-btn:not(.operator) {
+
+        display: none;
+    }
+
+
+    /* ==========================================
+       OPERATOR
+       ========================================== */
+
+    #calculator-tool.calculator-compact
+    #calcMainButtons
+    .calc-btn.operator {
+
+        display: block;
+
+        min-height: 48px;
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+
+        animation:
+            calcOperatorEnter
+            0.4s
+            cubic-bezier(.2,.8,.2,1)
+            both;
+    }
+
+
+    /* ==========================================
+       STAGGER
+       ========================================== */
+
+    #calculator-tool.calculator-compact
+    #calcMainButtons
+    .calc-btn.operator:nth-child(4) {
+
+        animation-delay: 0.02s;
+    }
+
+
+    #calculator-tool.calculator-compact
+    #calcMainButtons
+    .calc-btn.operator:nth-child(9) {
+
+        animation-delay: 0.06s;
+    }
+
+
+    #calculator-tool.calculator-compact
+    #calcMainButtons
+    .calc-btn.operator:nth-child(14) {
+
+        animation-delay: 0.10s;
+    }
+
+
+    #calculator-tool.calculator-compact
+    #calcMainButtons
+    .calc-btn.operator:nth-child(19) {
+
+        animation-delay: 0.14s;
+    }
+
+
+    /* ==========================================
+       CONTROLS
+       ========================================== */
+
+    #calculator-tool.calculator-compact
+    #calcControls {
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(4, 1fr);
+
+        gap: 8px;
+
+        animation:
+            calcControlsEnter
+            0.42s
+            cubic-bezier(.2,.8,.2,1)
+            both;
+    }
+
+
+    #calculator-tool.calculator-compact
+    #calcControls .calc-btn {
+
+        min-height: 48px;
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+
+    /* ==========================================
+       DISPLAY
+       ========================================== */
+
+    #calculator-tool.calculator-compact
+    .calc-display-wrapper {
+
+        min-height: 76px;
+
+        transform:
+            scale(1.01);
+    }
+
+
+    #calculator-tool.calculator-compact
+    .calc-display {
+
+        min-height: 76px;
+
+        padding:
+            10px 14px 30px;
+
+        font-size: 1.18rem;
+    }
+
+
+    #calculator-tool.calculator-compact
+    .calc-inline-result {
+
+        right: 14px;
+
+        bottom: 7px;
+
+        font-size: 0.92rem;
+    }
+
+
+    /* ==========================================
+       SPACING
+       ========================================== */
+
+    #calculator-tool.calculator-compact
+    .calculator {
+
+        gap: 8px;
+    }
+
+}
+
+
+/* =====================================================
+   FULL MODE EXIT ANIMATION
+   ===================================================== */
+
+@media (max-width: 600px) {
+
+    #calculator-tool:not(.calculator-compact)
+    #calcMainButtons
+    .calc-btn {
+
+        animation:
+            calcFullButtonEnter
+            0.35s
+            cubic-bezier(.2,.8,.2,1)
+            both;
+    }
+
+}
+
+
+/* ==========================================
+   OPERATOR ENTER
+   ========================================== */
+
+@keyframes calcOperatorEnter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateY(22px)
+            scale(0.65)
+            rotate(-6deg);
+    }
+
+    60% {
+
+        opacity: 1;
+
+        transform:
+            translateY(-3px)
+            scale(1.06)
+            rotate(1deg);
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1)
+            rotate(0);
+    }
+}
+
+
+/* ==========================================
+   CONTROL ENTER
+   ========================================== */
+
+@keyframes calcControlsEnter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateY(-18px)
+            scale(0.9);
+    }
+
+    65% {
+
+        opacity: 1;
+
+        transform:
+            translateY(3px)
+            scale(1.03);
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+/* ==========================================
+   FULL BUTTON ENTER
+   ========================================== */
+
+@keyframes calcFullButtonEnter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateY(-10px)
+            scale(0.9);
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+/* ==========================================
+   NUMBER APPEAR ANIMATION
+   ========================================== */
+
+#calculator-tool .calc-display.calc-input-pop {
+
+    animation:
+        calcInputPop
+        0.22s
+        cubic-bezier(.2,.8,.2,1);
+}
+
+
+@keyframes calcInputPop {
+
+    0% {
+
+        transform:
+            scale(0.985);
+    }
+
+    45% {
+
+        transform:
+            scale(1.025);
+    }
+
+    100% {
+
+        transform:
+            scale(1);
+    }
+}
+
+
+/* ==========================================
+   RESULT APPEAR ANIMATION
+   ========================================== */
+
+#calculator-tool .calc-inline-result.result-pop {
+
+    animation:
+        calcResultPop
+        0.38s
+        cubic-bezier(.2,.8,.2,1);
+}
+
+
+@keyframes calcResultPop {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateY(8px)
+            scale(0.82);
+    }
+
+    60% {
+
+        opacity: 1;
+
+        transform:
+            translateY(-2px)
+            scale(1.06);
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 600px) {
+
+    #calculator-tool .calculator {
+
+        max-width: 100%;
+
+        gap: 10px;
+    }
+
+
+    #calculator-tool .calc-buttons {
+
+        gap: 8px;
+    }
+
+
+    #calculator-tool .calc-btn {
+
+        min-height: 54px;
+
+        border-radius: 12px;
+
+        font-size: 1.05rem;
+    }
+
+
+    #calculator-tool .calc-controls .calc-btn {
+
+        min-height: 50px;
+    }
+
+
+    #calculator-tool .calc-display {
+
+        min-height: 70px;
+
+        font-size: 1.25rem;
+    }
+
+
+    #calculator-tool .calc-steps {
+
+        padding: 15px;
+
+        border-radius: 14px;
+    }
+
+
+    #calculator-tool .calc-steps-list li {
+
+        font-size: 0.94rem;
+    }
+
+}
+
+
+/* ==========================================
+   SMALL PHONE
+   ========================================== */
+
+@media (max-width: 380px) {
+
+    #calculator-tool .calc-buttons {
+
+        gap: 6px;
+    }
+
+
+    #calculator-tool .calc-btn {
+
+        min-height: 50px;
+
+        border-radius: 10px;
+    }
+
+
+    #calculator-tool .calc-controls .calc-btn {
+
+        min-height: 46px;
+    }
+
+
+    #calculator-tool .calc-display {
+
+        min-height: 62px;
+
+        font-size: 1.1rem;
+
+        padding:
+            9px 12px 27px;
+    }
+
+
+    #calculator-tool.calculator-compact
+    #calcMainButtons
+    .calc-btn.operator {
+
+        min-height: 46px;
+    }
+
+
+    #calculator-tool.calculator-compact
+    #calcControls .calc-btn {
+
+        min-height: 44px;
+    }
+
+}
+
+
+/* ==========================================
+   TOUCH
+   ========================================== */
+
+@media (hover: none) {
+
+    #calculator-tool .calc-btn:hover {
+
+        transform: none;
+
+        box-shadow: none;
+    }
+
+
+    #calculator-tool .calc-btn:active {
+
+        transform:
+            scale(0.94);
+    }
+
+}
+
+
+/* ==========================================
+   REDUCED MOTION
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    #calculator-tool *,
+    #calculator-tool *::before,
+    #calculator-tool *::after {
+
+        animation-duration: 0.01ms !important;
+
+        animation-iteration-count: 1 !important;
+
+        transition-duration: 0.01ms !important;
+    }
+
+}
+
+/* =================================
+   CALCULATOR MODE
+   ================================= */
+
+.tool-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.calc-mode-btn {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border: var(--border-light);
+    border-radius: 12px;
+
+    background: var(--card);
+    color: var(--text);
+
+    font-size: 20px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.calc-mode-btn:hover {
+    background: var(--background);
+}
+
+.calc-mode-btn:active {
+    transform: scale(0.92);
+}
+
+.calc-mode-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.math-mode-icon {
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.calc-original-expression {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.calc-step-separator {
+    width: 100%;
+    height: 1px;
+    margin: 12px 0;
+    background: currentColor;
+    opacity: 0.12;
+}
+
+.calc-steps-list {
+    margin: 0;
+    padding-left: 24px;
+}
