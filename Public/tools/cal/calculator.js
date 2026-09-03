@@ -5140,12 +5140,24 @@ if (value === '÷') {
 };
 
 
-// ==========================================
-// EXPORT
-// ==========================================
+let calculatorInstance = null;
+
+async function init() {
+    if (calculatorInstance) {
+        return calculatorInstance;
+    }
+
+    calculatorInstance = CalculatorTool;
+
+    calculatorInstance.init();
+
+    return calculatorInstance;
+}
 
 export {
-    CalculatorTool
+    CalculatorTool,
+    init
 };
 
 export default CalculatorTool;
+

@@ -800,10 +800,27 @@ if (backButton) {
  * ============================================================
  */
 
+// ============================================================
+// HYDYAR TOOLS - TOOL LOADER
+// ============================================================
+
 const ToolLoader = {
+
+    // --------------------------------------------------------
+    // Loaded modules
+    // --------------------------------------------------------
 
     modules: {},
 
+    // --------------------------------------------------------
+    // Loading states
+    // --------------------------------------------------------
+
+    loading: {},
+
+    // --------------------------------------------------------
+    // Tool module paths
+    // --------------------------------------------------------
 
     modulePaths: {
 
@@ -815,79 +832,115 @@ const ToolLoader = {
 
     },
 
-
-    /**
-     * --------------------------------------------------------
-     * INIT TOOL
-     * --------------------------------------------------------
-     */
+    // --------------------------------------------------------
+    // Load a tool
+    // --------------------------------------------------------
 
     async init(toolName) {
 
-        // ------------------------------------------
+        // --------------------------------------------
         // Already loaded
-        // ------------------------------------------
+        // --------------------------------------------
 
         if (this.modules[toolName]) {
-
             return this.modules[toolName];
-
         }
 
+        // --------------------------------------------
+        // Already loading
+        // Prevent duplicate imports
+        // --------------------------------------------
+
+        if (this.loading[toolName]) {
+            return this.loading[toolName];
+        }
+
+        // --------------------------------------------
+        // Find module path
+        // --------------------------------------------
 
         const modulePath =
             this.modulePaths[toolName];
 
-
         if (!modulePath) {
 
-            return null;
+            console.warn(
+                `⚠️ Không tìm thấy đường dẫn tool: ${toolName}`
+            );
 
+            return null;
         }
 
+        // --------------------------------------------
+        // Create loading promise
+        // --------------------------------------------
+
+        this.loading[toolName] =
+            this._loadModule(
+                toolName,
+                modulePath
+            );
 
         try {
 
             const module =
+                await this.loading[toolName];
+
+            return module;
+
+        } finally {
+
+            // ----------------------------------------
+            // Remove loading state
+            // ----------------------------------------
+
+            delete this.loading[toolName];
+
+        }
+
+    },
+
+    // --------------------------------------------------------
+    // Internal module loader
+    // --------------------------------------------------------
+
+    async _loadModule(
+        toolName,
+        modulePath
+    ) {
+
+        try {
+
+            console.info(
+                `🔄 Loading tool: ${toolName}`
+            );
+
+            // ----------------------------------------
+            // Dynamic import
+            // ----------------------------------------
+
+            const module =
                 await import(modulePath);
 
+            // ----------------------------------------
+            // Initialize module
+            // ----------------------------------------
+
+            await this._initializeModule(
+                toolName,
+                module
+            );
+
+            // ----------------------------------------
+            // Store module
+            // ----------------------------------------
 
             this.modules[toolName] =
                 module;
 
-
-            // --------------------------------------
-            // Common module initializer
-            // --------------------------------------
-
-            if (
-                typeof module.init ===
-                'function'
-            ) {
-
-                await module.init();
-
-            }
-
-
-            // --------------------------------------
-            // Tool-specific initializer
-            // --------------------------------------
-
-            else if (
-                typeof module.default ===
-                'function'
-            ) {
-
-                await module.default();
-
-            }
-
-
             console.info(
                 `✅ Tool loaded: ${toolName}`
             );
-
 
             return module;
 
@@ -902,11 +955,133 @@ const ToolLoader = {
 
         }
 
+    },
+
+    // --------------------------------------------------------
+    // Initialize imported module
+    // --------------------------------------------------------
+
+    async _initializeModule(
+        toolName,
+        module
+    ) {
+
+        // --------------------------------------------
+        // Preferred API
+        // --------------------------------------------
+
+        if (
+            typeof module.init ===
+            'function'
+        ) {
+
+            await module.init();
+
+            return;
+
+        }
+
+        // --------------------------------------------
+        // Default function API
+        // --------------------------------------------
+
+        if (
+            typeof module.default ===
+            'function'
+        ) {
+
+            await module.default();
+
+            return;
+
+        }
+
+        // --------------------------------------------
+        // No initializer
+        // --------------------------------------------
+
+        console.warn(
+            `⚠️ Tool "${toolName}" không có hàm init().`
+        );
+
+    },
+
+    // --------------------------------------------------------
+    // Check whether tool is loaded
+    // --------------------------------------------------------
+
+    isLoaded(toolName) {
+
+        return !!this.modules[toolName];
+
+    },
+
+    // --------------------------------------------------------
+    // Get loaded module
+    // --------------------------------------------------------
+
+    get(toolName) {
+
+        return this.modules[toolName] || null;
+
+    },
+
+    // --------------------------------------------------------
+    // Reload tool
+    // --------------------------------------------------------
+
+    async reload(toolName) {
+
+        // --------------------------------------------
+        // Remove cached module
+        // --------------------------------------------
+
+        delete this.modules[toolName];
+
+        // --------------------------------------------
+        // Import again
+        // --------------------------------------------
+
+        return await this.init(toolName);
+
+    },
+
+    // --------------------------------------------------------
+    // Load multiple tools
+    // --------------------------------------------------------
+
+    async loadAll(toolNames) {
+
+        if (
+            !Array.isArray(toolNames) ||
+            toolNames.length === 0
+        ) {
+            return [];
+        }
+
+        const results =
+            await Promise.all(
+                toolNames.map(
+                    toolName =>
+                        this.init(toolName)
+                )
+            );
+
+        return results;
+
+    },
+
+    // --------------------------------------------------------
+    // Get loading status
+    // --------------------------------------------------------
+
+    isLoading(toolName) {
+
+        return !!this.loading[toolName];
+
     }
 
 };
-
-
 
 /**
  * ============================================================
