@@ -792,35 +792,27 @@ if (backButton) {
 
 };
 
-
-
-/**
- * ============================================================
- * TOOL LOADER
- * ============================================================
- */
-
-// ============================================================
-// HYDYAR TOOLS - TOOL LOADER
-// ============================================================
+// ==========================================
+// HYDYAR TOOLS — TOOL LOADER
+// Modular Dynamic Tool System
+// ==========================================
 
 const ToolLoader = {
 
-    // --------------------------------------------------------
-    // Loaded modules
-    // --------------------------------------------------------
+    // ======================================
+    // STATE
+    // ======================================
 
     modules: {},
 
-    // --------------------------------------------------------
-    // Loading states
-    // --------------------------------------------------------
-
     loading: {},
 
-    // --------------------------------------------------------
-    // Tool module paths
-    // --------------------------------------------------------
+    initialized: {},
+
+
+    // ======================================
+    // MODULE PATHS
+    // ======================================
 
     modulePaths: {
 
@@ -832,48 +824,79 @@ const ToolLoader = {
 
     },
 
-    // --------------------------------------------------------
-    // Load a tool
-    // --------------------------------------------------------
+
+    // ======================================
+    // LOAD TOOL
+    // ======================================
 
     async init(toolName) {
 
-        // --------------------------------------------
-        // Already loaded
-        // --------------------------------------------
+        // ----------------------------------
+        // INVALID TOOL
+        // ----------------------------------
 
-        if (this.modules[toolName]) {
-            return this.modules[toolName];
-        }
-
-        // --------------------------------------------
-        // Already loading
-        // Prevent duplicate imports
-        // --------------------------------------------
-
-        if (this.loading[toolName]) {
-            return this.loading[toolName];
-        }
-
-        // --------------------------------------------
-        // Find module path
-        // --------------------------------------------
-
-        const modulePath =
-            this.modulePaths[toolName];
-
-        if (!modulePath) {
+        if (!toolName) {
 
             console.warn(
-                `⚠️ Không tìm thấy đường dẫn tool: ${toolName}`
+                '⚠️ ToolLoader: toolName không hợp lệ.'
             );
 
             return null;
         }
 
-        // --------------------------------------------
-        // Create loading promise
-        // --------------------------------------------
+
+        // ----------------------------------
+        // ALREADY INITIALIZED
+        // ----------------------------------
+
+        if (
+            this.initialized[toolName] &&
+            this.modules[toolName]
+        ) {
+
+            console.info(
+                `♻️ Tool đã được khởi tạo: ${toolName}`
+            );
+
+            return this.modules[toolName];
+        }
+
+
+        // ----------------------------------
+        // CURRENTLY LOADING
+        // ----------------------------------
+
+        if (this.loading[toolName]) {
+
+            console.info(
+                `⏳ Tool đang được load: ${toolName}`
+            );
+
+            return this.loading[toolName];
+        }
+
+
+        // ----------------------------------
+        // MODULE PATH
+        // ----------------------------------
+
+        const modulePath =
+            this.modulePaths[toolName];
+
+
+        if (!modulePath) {
+
+            console.error(
+                `❌ Không tìm thấy module path cho tool "${toolName}".`
+            );
+
+            return null;
+        }
+
+
+        // ==================================
+        // CREATE LOADING PROMISE
+        // ==================================
 
         this.loading[toolName] =
             this._loadModule(
@@ -881,28 +904,25 @@ const ToolLoader = {
                 modulePath
             );
 
+
         try {
 
             const module =
                 await this.loading[toolName];
 
+
             return module;
 
         } finally {
 
-            // ----------------------------------------
-            // Remove loading state
-            // ----------------------------------------
-
             delete this.loading[toolName];
-
         }
-
     },
 
-    // --------------------------------------------------------
-    // Internal module loader
-    // --------------------------------------------------------
+
+    // ======================================
+    // INTERNAL MODULE LOADER
+    // ======================================
 
     async _loadModule(
         toolName,
@@ -912,176 +932,424 @@ const ToolLoader = {
         try {
 
             console.info(
-                `🔄 Loading tool: ${toolName}`
+                `📦 Đang load tool: ${toolName}`
             );
 
-            // ----------------------------------------
-            // Dynamic import
-            // ----------------------------------------
+
+            console.info(
+                `↳ ${modulePath}`
+            );
+
+
+            // --------------------------------
+            // IMPORT MODULE
+            // --------------------------------
 
             const module =
-                await import(modulePath);
+                await import(
+                    modulePath
+                );
 
-            // ----------------------------------------
-            // Initialize module
-            // ----------------------------------------
 
-            await this._initializeModule(
-                toolName,
-                module
+            if (!module) {
+
+                throw new Error(
+                    'Module trả về null/undefined.'
+                );
+            }
+
+
+            console.info(
+                `📥 Module "${toolName}" đã import.`
             );
 
-            // ----------------------------------------
-            // Store module
-            // ----------------------------------------
+
+            // --------------------------------
+            // SAVE RAW MODULE
+            // --------------------------------
 
             this.modules[toolName] =
                 module;
+
+
+            // ==================================
+            // INITIALIZATION
+            // ==================================
+
+            let instance = null;
+
+
+            // ----------------------------------
+            // PRIORITY 1
+            // module.init()
+            // ----------------------------------
+
+            if (
+                typeof module.init ===
+                'function'
+            ) {
+
+                console.info(
+                    `🔧 ${toolName}: gọi module.init()`
+                );
+
+
+                instance =
+                    await module.init();
+            }
+
+
+            // ----------------------------------
+            // PRIORITY 2
+            // default.init()
+            // ----------------------------------
+
+            else if (
+                module.default &&
+                typeof module.default.init ===
+                'function'
+            ) {
+
+                console.info(
+                    `🔧 ${toolName}: gọi default.init()`
+                );
+
+
+                instance =
+                    await module.default.init();
+            }
+
+
+            // ----------------------------------
+            // PRIORITY 3
+            // default function
+            // ----------------------------------
+
+            else if (
+                typeof module.default ===
+                'function'
+            ) {
+
+                console.info(
+                    `🔧 ${toolName}: gọi default()`
+                );
+
+
+                instance =
+                    await module.default();
+            }
+
+
+            // ----------------------------------
+            // PRIORITY 4
+            // named Tool class
+            // ----------------------------------
+
+            else {
+
+                const toolClass =
+                    this._findToolClass(
+                        module,
+                        toolName
+                    );
+
+
+                if (toolClass) {
+
+                    console.info(
+                        `🏗️ ${toolName}: tạo instance từ class.`
+                    );
+
+
+                    instance =
+                        new toolClass();
+
+
+                    if (
+                        typeof instance.init ===
+                        'function'
+                    ) {
+
+                        await instance.init();
+                    }
+
+                }
+
+            }
+
+
+            // ==================================
+            // INSTANCE HANDLING
+            // ==================================
+
+            if (instance) {
+
+                this.modules[toolName] =
+                    instance;
+
+            }
+
+
+            this.initialized[toolName] =
+                true;
+
 
             console.info(
                 `✅ Tool loaded: ${toolName}`
             );
 
-            return module;
+
+            return this.modules[toolName];
+
 
         } catch (error) {
+
+            // --------------------------------
+            // CLEAN FAILED STATE
+            // --------------------------------
+
+            delete this.modules[toolName];
+
+            this.initialized[toolName] =
+                false;
+
 
             console.error(
                 `❌ Không thể load tool "${toolName}":`,
                 error
             );
 
+
+            console.error(
+                `📍 Module path: ${modulePath}`
+            );
+
+
             return null;
-
         }
-
     },
 
-    // --------------------------------------------------------
-    // Initialize imported module
-    // --------------------------------------------------------
 
-    async _initializeModule(
-        toolName,
-        module
+    // ======================================
+    // FIND TOOL CLASS
+    // ======================================
+
+    _findToolClass(
+        module,
+        toolName
     ) {
 
-        // --------------------------------------------
-        // Preferred API
-        // --------------------------------------------
+        if (!module) {
 
-        if (
-            typeof module.init ===
-            'function'
-        ) {
-
-            await module.init();
-
-            return;
-
+            return null;
         }
 
-        // --------------------------------------------
-        // Default function API
-        // --------------------------------------------
 
-        if (
-            typeof module.default ===
-            'function'
+        // ----------------------------------
+        // Common naming
+        // ----------------------------------
+
+        const names = [
+
+            `${this._capitalize(toolName)}Tool`,
+
+            `${this._capitalize(toolName)}`,
+
+            'Tool'
+
+        ];
+
+
+        for (
+            const name of names
         ) {
 
-            await module.default();
+            const candidate =
+                module[name];
 
-            return;
 
+            if (
+                typeof candidate ===
+                'function'
+            ) {
+
+                return candidate;
+            }
         }
 
-        // --------------------------------------------
-        // No initializer
-        // --------------------------------------------
 
-        console.warn(
-            `⚠️ Tool "${toolName}" không có hàm init().`
+        // ----------------------------------
+        // Search exported functions/classes
+        // ----------------------------------
+
+        for (
+            const key of Object.keys(module)
+        ) {
+
+            const candidate =
+                module[key];
+
+
+            if (
+                typeof candidate !==
+                'function'
+            ) {
+
+                continue;
+            }
+
+
+            // Tránh lấy init()
+            if (
+                key === 'init'
+            ) {
+
+                continue;
+            }
+
+
+            // Class / constructor heuristic
+            if (
+                /^[A-Z]/.test(key)
+            ) {
+
+                return candidate;
+            }
+        }
+
+
+        return null;
+    },
+
+
+    // ======================================
+    // CAPITALIZE
+    // ======================================
+
+    _capitalize(value) {
+
+        if (!value) {
+
+            return '';
+        }
+
+
+        return (
+            value.charAt(0).toUpperCase() +
+            value.slice(1)
         );
-
     },
 
-    // --------------------------------------------------------
-    // Check whether tool is loaded
-    // --------------------------------------------------------
 
-    isLoaded(toolName) {
-
-        return !!this.modules[toolName];
-
-    },
-
-    // --------------------------------------------------------
-    // Get loaded module
-    // --------------------------------------------------------
+    // ======================================
+    // GET TOOL
+    // ======================================
 
     get(toolName) {
 
-        return this.modules[toolName] || null;
-
+        return (
+            this.modules[toolName] ??
+            null
+        );
     },
 
-    // --------------------------------------------------------
-    // Reload tool
-    // --------------------------------------------------------
 
-    async reload(toolName) {
+    // ======================================
+    // CHECK LOADED
+    // ======================================
 
-        // --------------------------------------------
-        // Remove cached module
-        // --------------------------------------------
+    isLoaded(toolName) {
+
+        return !!(
+            this.modules[toolName]
+        );
+    },
+
+
+    // ======================================
+    // CHECK INITIALIZED
+    // ======================================
+
+    isInitialized(toolName) {
+
+        return !!(
+            this.initialized[toolName]
+        );
+    },
+
+
+    // ======================================
+    // UNLOAD
+    // ======================================
+
+    unload(toolName) {
+
+        if (!toolName) {
+
+            return;
+        }
+
 
         delete this.modules[toolName];
 
-        // --------------------------------------------
-        // Import again
-        // --------------------------------------------
+        delete this.initialized[toolName];
 
-        return await this.init(toolName);
+        delete this.loading[toolName];
 
+
+        console.info(
+            `🗑️ Tool unloaded: ${toolName}`
+        );
     },
 
-    // --------------------------------------------------------
-    // Load multiple tools
-    // --------------------------------------------------------
 
-    async loadAll(toolNames) {
+    // ======================================
+    // RELOAD
+    // ======================================
 
-        if (
-            !Array.isArray(toolNames) ||
-            toolNames.length === 0
+    async reload(toolName) {
+
+        this.unload(
+            toolName
+        );
+
+
+        return await this.init(
+            toolName
+        );
+    },
+
+
+    // ======================================
+    // LOAD MULTIPLE
+    // ======================================
+
+    async initAll(
+        toolNames = Object.keys(
+            this.modulePaths
+        )
+    ) {
+
+        const results = {};
+
+
+        for (
+            const toolName of toolNames
         ) {
-            return [];
+
+            results[toolName] =
+                await this.init(
+                    toolName
+                );
         }
 
-        const results =
-            await Promise.all(
-                toolNames.map(
-                    toolName =>
-                        this.init(toolName)
-                )
-            );
 
         return results;
-
-    },
-
-    // --------------------------------------------------------
-    // Get loading status
-    // --------------------------------------------------------
-
-    isLoading(toolName) {
-
-        return !!this.loading[toolName];
-
     }
 
 };
+
+
 
 /**
  * ============================================================
