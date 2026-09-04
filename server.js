@@ -500,6 +500,51 @@ app.get('/tools/formatter', serveSeoPage);
 app.get('/tools/notes', serveSeoPage);
 
 
+// ==========================================
+// SEO — robots.txt
+// ==========================================
+
+app.get('/robots.txt', (req, res) => {
+    const robots = `User-agent: *
+Allow: /
+
+Sitemap: ${BASE_URL}/sitemap.xml
+`;
+
+    res.type('text/plain').send(robots);
+});
+
+
+// ==========================================
+// SEO — sitemap.xml
+// ==========================================
+
+app.get('/sitemap.xml', (req, res) => {
+    const urls = [
+        '/',
+        '/tools',
+        '/tools/all',
+        '/tools/calculator',
+        '/tools/counter',
+        '/tools/formatter',
+        '/tools/notes'
+    ];
+
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+>
+${urls.map(path => `    <url>
+        <loc>${BASE_URL}${path}</loc>
+    </url>`).join('\n')}
+</urlset>`;
+
+    res
+        .type('application/xml')
+        .send(sitemap);
+});
+
+
 // ============================================================
 // 404 HANDLER
 // ============================================================
